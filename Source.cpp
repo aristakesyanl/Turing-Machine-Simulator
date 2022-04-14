@@ -11,7 +11,8 @@ int main(int argc, char* argv[]) {
         DFA a(str);
         std::string test;
         std::cin>>test;
-        std::cout << a.run(test) << std::endl;;
+        std::cout << a.run(test) << std::endl;
+        a.debug(test);
     }
     
 }
