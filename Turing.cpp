@@ -7,9 +7,9 @@
 #include<stdexcept>
 #include<set>
 #include<algorithm>
-#include<dequeue>
+#include<deque>
 #include<csignal>
-#include"DFA.h"
+#include"Turing.h"
 
 using namespace std;
 
@@ -72,7 +72,7 @@ Turing::Turing(string& fileName) {
     
  }
 
-void DFA::parseInput(std::string str){
+void Turing::parseInput(std::string str){
     //remove whitespaces
     str.erase(remove(str.begin(), str.end(),' '), str.end());
     //add ',' at the end of the string to make parsing easier
@@ -101,7 +101,7 @@ void DFA::parseInput(std::string str){
  }
 
 
-void DFA::parseOutput(std::string str){
+void Turing::parseOutput(std::string str){
     //remove whitespaces
     str.erase(remove(str.begin(), str.end(),' '), str.end());
     //add ',' at the end of the string to make parsing easier
@@ -129,7 +129,7 @@ void DFA::parseOutput(std::string str){
     }
  }
 
- void DFA::parseStates(std::string str){
+ void Turing::parseStates(std::string str){
     //remove whitespaces
     str.erase(remove(str.begin(), str.end(),' '), str.end());
     
@@ -196,7 +196,7 @@ void DFA::parseOutput(std::string str){
  }
 
 
-void DFA::parseFunction(string str, int state) {
+void Turing::parseFunction(string str, int state) {
 
     str.erase(remove(str.begin(), str.end(),' '), str.end());
     str.push_back('|');
@@ -246,10 +246,10 @@ void DFA::parseFunction(string str, int state) {
     //check that directions are given
     for(int i=0; i<(int)result.size();i++){
         int sz=(int)result.size();
-        if(result[sz-2]!=','){
-            throw std::invalid_argument("Wrong Form of Character Given In (symbol,state, direction) Tuple")
+        if(result[i][sz-2]!=','){
+            throw std::invalid_argument("Wrong Form of Character Given In (symbol,state, direction) Tuple");
         }
-        if(result[sz-1]!='r' && result[sz-1]!='l' && result[sz-1]!='s'){
+        if(result[i][sz-1]!='r' && result[i][sz-1]!='l' && result[i][sz-1]!='s'){
             throw std::invalid_argument("Directions Not Given In (symbol, state, direction) Tuple");
         }
     }
@@ -257,7 +257,7 @@ void DFA::parseFunction(string str, int state) {
    
     
     for(int i=0; i<(int)result.size();i++){
-        std::nstr=result[i].substr(3,(int)result[i].size()-4);
+        std::string nstr=result[i].substr(3,(int)result[i].size()-4);
         if(nstr!="HALT"){
                 for(int j=3; j<(int)result[i].size()-4;j++){
                 if(result[i][j]-'0'<0 || result[i][j]-'0'>10){
@@ -269,6 +269,7 @@ void DFA::parseFunction(string str, int state) {
     
     //integer corresponding to HALT state is -1
     for(int i=0; i<(int)result.size();i++){
+        int sz=(int)result[i].size();
         for(int j=3; j<(int)result[i].size()-4;j++){
             int len=(int)result[i].size()-4;
             if(result[i].substr(3,len)!="HALT"){
@@ -310,10 +311,10 @@ std::string Turing::run(std::string& str) {
     char curSymbol;
 
     while(curState!=-1){
-        answer[curPos] = change[make_pair(answer[curPos], curState)];
-        curState=change[make_pair(answer[curPos], curState)];
-        curDir=change[make_pair(answer[curPos], curState)];
-        curSymbol=change[make_pair(answer[curPos], curState)];
+        answer[curPos] = change[make_pair(answer[curPos], curState)].symbol;
+        curState=change[make_pair(answer[curPos], curState)].state;
+        curDir=change[make_pair(answer[curPos], curState)].direction;
+        curSymbol=change[make_pair(answer[curPos], curState)].symbol;
 
         if(curDir=='l' && curPos==0){
             answer.push_front('.');
@@ -332,29 +333,38 @@ std::string Turing::run(std::string& str) {
     }
 
     int sz=(int)answer.size();
-    int k=-1;
+    int start=-1;
 
     for(int i=0; i<sz; i++){
         if(answer[i]!='.') {
-            k=i;
+            start=i;
             break;
         }
     }
     std::string output_string;
-     if(k==-1){
+     if(start==-1){
         output_string="";
      }
-     else{
-        for(int i=k; i<sz; i++){
-            output_string.push_back(answer[i]);
 
+     int end;
+    
+     for(int i=sz-1; i>=0; i--){
+        if(answer[i]!='.'){
+            end=i;
+            break;
         }
      }
 
-    return output_string.
+
+    for(int i=start; i<=end; i++){
+        output_string.push_back(answer[i]);
+
+    }
+
+    return output_string;
 }
 
-void Turing::printTape(const std::deque<int>& deq){
+void Turing::printTape(const std::deque<char>& deq){
     for(int i=0;i<(int)deq.size();i++){
         cout<<deq[i];
     }
@@ -364,10 +374,10 @@ void Turing::printTape(const std::deque<int>& deq){
 
 //if s='e' print the tape after the step
 //if s='q' quit running Turing machine
-void Turing::debug(std::string&){
+void Turing::debug(std::string& str){
     int len = str.size();
 
-    deque<char> answer;
+    std::deque<char> answer;
     for(int i=0; i<(int)str.size();i++){
         answer.push_back(str[i]);
     }
@@ -378,39 +388,44 @@ void Turing::debug(std::string&){
     char curSymbol;
 
     char s;
-    cin>>s;
-    if(s=='e'){
-        answer[curPos] = change[make_pair(answer[curPos], curState)];
-        curState=change[make_pair(answer[curPos], curState)];
-        curDir=change[make_pair(answer[curPos], curState)];
-        curSymbol=change[make_pair(answer[curPos], curState)];
+    while(cin>>s){
 
-        if(curDir=='l' && curPos==0){
-            answer.push_front('.');
+            if(s=='e'){
+            answer[curPos] = change[make_pair(answer[curPos], curState)].symbol;
+            curState=change[make_pair(answer[curPos], curState)].state;
+            curDir=change[make_pair(answer[curPos], curState)].direction;
+            curSymbol=change[make_pair(answer[curPos], curState)].symbol;
+
+            if(curDir=='l' && curPos==0){
+                answer.push_front('.');
+            }
+            else if(curDir=='r' && curPos==answer.size()-1){
+                answer.push_back('.');
+                curPos++;
+            }
+            else if(curDir=='l' && curPos!=0){
+                curPos--;
+            }
+            else{
+                curPos++;
+            }
+            printTape(answer);
+            if(curState==-1){
+                std::cout<<"Program Finished Successfully"<<std::endl;
+                return;
+            }
         }
-        else if(curDir=='r' && curPos==answer.size()-1){
-            answer.push_back('.');
-            curPos++;
-        }
-        else if(curDir=='l' && curPos!=0){
-            curPos--;
-        }
-        else{
-            curPos++;
-        }
-        printTape();
-        if(curState==-1){
-            cout<<"Program Finished Successfully"<<endl;
+
+
+        else if(s=='q'){
+            std::cout<<"Turing Machine Execution aborted"<<std::endl;
             return;
         }
-    }
-    else if(s=='q'){
-        cout<<"Turing Machine Execution aborted"<<endl;
-        return;
-    }
-    else{
-        cout<<"Wrong Instruction"<<endl;
-        return;
+        else{
+            std::cerr<<"Wrong Instruction"<<std::endl;
+            return;
+        }
+
     }
     
 }
