@@ -12,6 +12,10 @@
  * In exit mode the simulator prints the output of Turing Machine with the 
  * given configuration. In debug mode the program prints the output of each 
  * step after pressing Enter. To exit debug mode press Ctrl+Alt+D.
+ * **Warning-->When entering the program consider that character corresponding
+ * to empty is '.'.
+ * ',', '|', '.' are special symbols and are not used as input symbols and are
+ * reserved as special characters.
  * 
  * *********************************************************************/
 
@@ -21,12 +25,12 @@ class Turing {
 public:
     Turing(std::string&);
     std::string run(std::string&);
-    std::string debug(std::string&, std::string&);
+    void debug(std::string&, char);
 private:
     struct decision{
         char symbol;
         int state;
-        char direction; //right=r, left=l
+        char direction; //right=r, left=l, stay at current position=s;
     }
     std::vector<char> inputSymbol; //set of input symbols
     std::set<char> sInput;
@@ -39,6 +43,7 @@ private:
     void parseOutput(std::string);
     void parseStates(std::string);
     void parseFunction(std::string, int);
+    void printTape(const std::deque<int>&);
 };
 
 #endif
