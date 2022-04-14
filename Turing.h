@@ -1,7 +1,9 @@
 #include<string>
 #include<map>
 #include<utility>
-
+#include<vector>
+#include<set>
+#include<deque>
 
 /***********************************************************************
 * 
@@ -25,13 +27,13 @@ class Turing {
 public:
     Turing(std::string&);
     std::string run(std::string&);
-    void debug(std::string&, char);
+    void debug(std::string&);
 private:
     struct decision{
         char symbol;
         int state;
         char direction; //right=r, left=l, stay at current position=s;
-    }
+    };
     std::vector<char> inputSymbol; //set of input symbols
     std::set<char> sInput;
     std::vector<char> outputSymbol;//set of output symbols
