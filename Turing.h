@@ -13,7 +13,7 @@
  * We can run the machine in two modes: exit and debug.
  * In exit mode the simulator prints the output of Turing Machine with the 
  * given configuration. In debug mode the program prints the output of each 
- * step after pressing Enter. To exit debug mode press Ctrl+Alt+D.
+ * step after pressing 'e'. To exit debug mode press 'q'.
  * **Warning-->When entering the program consider that character corresponding
  * to empty is '.'.
  * ',', '|', '.' are special symbols and are not used as input symbols and are
