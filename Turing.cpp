@@ -30,10 +30,6 @@ Turing::Turing(std::string& fileName) {
 
     in.close();
 
-    // for(int i=0; i<(int) lines.size(); i++){
-    //     std::cout<<lines[i]<<std::endl;
-    // }
-
     //keep the number of lines
     int count = lines.size();
   
@@ -53,8 +49,8 @@ Turing::Turing(std::string& fileName) {
     //In case of additional lines just ignore them
     //It is assumed that the first lines corresposnds
     //to the first state given in the state format
-    //If for example first states are, q1,q2,q0
-    //and input symbols are a,b,d
+    //If for example first states are, 1,2,0,HALT
+    //and symbols are a,b,d
     //the first line describes correspondingly changes for
     //(1,a), (1,b), (1,d) etc.
 
