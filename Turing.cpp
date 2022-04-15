@@ -8,16 +8,14 @@
 #include<set>
 #include<algorithm>
 #include<deque>
-#include<csignal>
 #include"Turing.h"
 
-using namespace std;
 
-Turing::Turing(string& fileName) {
+Turing::Turing(std::string& fileName) {
     //delete empty lines from text file
     std::ifstream in(fileName);
     std::string line;
-    vector<string> lines;
+    std::vector<std::string> lines;
 
     if (in.is_open()) {
         while (getline(in, line)) {
@@ -32,6 +30,10 @@ Turing::Turing(string& fileName) {
 
     in.close();
 
+    // for(int i=0; i<(int) lines.size(); i++){
+    //     std::cout<<lines[i]<<std::endl;
+    // }
+
     //keep the number of lines
     int count = lines.size();
   
@@ -39,15 +41,12 @@ Turing::Turing(string& fileName) {
         throw std::invalid_argument("Invalid Text Format: Not Enough Information");
     }
 
-    //check input symbols
-    parseInput(lines[0]);
+    //check alphabet symbols
+    parseAlphabet(lines[0]);
 
     
-    //check output symbols
-    parseOutput(lines[1]);
-
     //check states
-    parseStates(lines[2]);
+    parseStates(lines[1]);
 
     //Check that the number of states is no less than lines
     //describing state changes.
@@ -59,20 +58,20 @@ Turing::Turing(string& fileName) {
     //the first line describes correspondingly changes for
     //(1,a), (1,b), (1,d) etc.
 
-    if(count-3<(int)states.size()){
+    if(count-2<(int)states.size()){
         throw std::invalid_argument("Invalid File Format");
     }
 
-
-
     //check (symbol,state) pairs
-    for(int i=3; i<(int)lines.size(); i++){
-        parseFunction(lines[i],states[i-3]);
+    for(int i=2; i<(int)lines.size(); i++){
+        parseFunction(lines[i],states[i-2]);
+          
     }
+
     
  }
 
-void Turing::parseInput(std::string str){
+void Turing::parseAlphabet(std::string str){
     //remove whitespaces
     str.erase(remove(str.begin(), str.end(),' '), str.end());
     //add ',' at the end of the string to make parsing easier
@@ -83,7 +82,7 @@ void Turing::parseInput(std::string str){
     //so checking is valid
     for(int i=1;i<(int)str.size();i+=2){
         if(str[i]!=','){
-            throw std::invalid_argument("Invalid Input Format");
+            throw std::invalid_argument("Invalid Alphabet Symbol");
         }
     }
     str.pop_back();
@@ -91,43 +90,20 @@ void Turing::parseInput(std::string str){
     //use set to check that string contains distinct characters
     //remove repeating ones
     for(int i=0; i<(int)str.size(); i+=2){
-        if(sInput.find(str[i])==sInput.end()){
-            inputSymbol.push_back(str[i]);
-            sInput.insert(str[i]);
+        if(sAlphabet.find(str[i])==sAlphabet.end()){
+            alphabet.push_back(str[i]);
+            sAlphabet.insert(str[i]);
         }
 
+    }
+    if(sAlphabet.find('.')==sAlphabet.end()){
+        throw std::invalid_argument("Does not contain empty character");
     }
     
  }
 
 
-void Turing::parseOutput(std::string str){
-    //remove whitespaces
-    str.erase(remove(str.begin(), str.end(),' '), str.end());
-    //add ',' at the end of the string to make parsing easier
-    str.push_back(',');
-    
-    //parse to check that every second character is ','
-    //string has at least two characters(as we added one at the end)
-    //so checking is valid
-    for(int i=1;i<(int)str.size();i+=2){
-        if(str[i]!=','){
-            throw std::invalid_argument("Invalid Output Format");
-        }
-    }
 
-    str.pop_back();
-
-    //use set to check that string contains distince characters
-    //remove repeating ones
-    for(int i=0; i<(int)str.size(); i+=2){
-        if(sOutput.find(str[i])==sOutput.end()){
-            outputSymbol.push_back(str[i]);
-            sOutput.insert(str[i]);
-        }
-
-    }
- }
 
  void Turing::parseStates(std::string str){
     //remove whitespaces
@@ -154,6 +130,7 @@ void Turing::parseOutput(std::string str){
         }
     }
 
+    
     bool start=false;
 
     for(int i=0; i<(int)result.size(); i++){
@@ -196,7 +173,7 @@ void Turing::parseOutput(std::string str){
  }
 
 
-void Turing::parseFunction(string str, int state) {
+void Turing::parseFunction(std::string str, int state) {
 
     str.erase(remove(str.begin(), str.end(),' '), str.end());
     str.push_back('|');
@@ -217,90 +194,89 @@ void Turing::parseFunction(string str, int state) {
 
     //check that the number of tuples is no less than the number of input symbols
     //if number of tuples is more they are just going to be ignored
-    if((int)result.size()<(int)inputSymbol.size()){
+    if((int)result.size()<(int)alphabet.size()){
         throw std::invalid_argument("Not Enough Tuples Given");
     }
 
     //check that for each Tuple the length requirement is met
     for(int i=0; i<(int)result.size();i++){
         if(result[i].size()<5){
-            throw std::invalid_argument("Invalid (symbol,state,direction) Tuple");
+            throw std::invalid_argument("Invalid (symbol,state,direction) Tuple: Length requirment is not met");
         }
     }
 
 
     //check that in all symbols are from output
     for(int i=0; i<(int)result.size();i++){
-        if(sOutput.find(result[i][0])==sOutput.end()){
-            throw std::invalid_argument("Symbol Is Not Contained In Initial Output Set");
+        if(sAlphabet.find(result[i][0])==sAlphabet.end()){
+            throw std::invalid_argument("Symbol Is Not Contained In Initial Alphabet");
         }
     }
 
     //check that every second character for tuple is ','
     for(int i=0; i<(int)result.size();i++){
         if(result[i][1]!=','){
-            throw std::invalid_argument("Wrong Form of Character Given In (symbol,state, direction) Tuple");
+            throw std::invalid_argument("Wrong Form of Character Given In (symbol,state, direction) Tuple: Symbol is not separated by comma");
         }
     }
 
     //check that directions are given
     for(int i=0; i<(int)result.size();i++){
-        int sz=(int)result.size();
+        int sz=(int)result[i].size();
         if(result[i][sz-2]!=','){
-            throw std::invalid_argument("Wrong Form of Character Given In (symbol,state, direction) Tuple");
+            throw std::invalid_argument("Wrong Form of Character Given In (symbol,state, direction) Tuple: Direction is not separated by comma");
         }
         if(result[i][sz-1]!='r' && result[i][sz-1]!='l' && result[i][sz-1]!='s'){
-            throw std::invalid_argument("Directions Not Given In (symbol, state, direction) Tuple");
+            throw std::invalid_argument("Directions Not Given In (symbol, state, direction) Tuple: Wrong Character given to indicate direction");
         }
     }
 
    
     
     for(int i=0; i<(int)result.size();i++){
-        std::string nstr=result[i].substr(3,(int)result[i].size()-4);
+        std::string nstr=result[i].substr(2,(int)result[i].size()-4);
         if(nstr!="HALT"){
-                for(int j=3; j<(int)result[i].size()-4;j++){
+                for(int j=2; j<(int)result[i].size()-4;j++){
                 if(result[i][j]-'0'<0 || result[i][j]-'0'>10){
-                    throw std::invalid_argument("Wrong Character Given in (symbol,state,direction) Tuple");
+                    throw std::invalid_argument("Wrong Character Given in (symbol,state,direction) Tuple: States contain character other than numbers");
                 }
             }
         }
     }
     
     //integer corresponding to HALT state is -1
-    for(int i=0; i<(int)result.size();i++){
+    for(int i=0; i<(int)alphabet.size();i++){
         int sz=(int)result[i].size();
-        for(int j=3; j<(int)result[i].size()-4;j++){
-            int len=(int)result[i].size()-4;
-            if(result[i].substr(3,len)!="HALT"){
-                int num=stoi(result[i].substr(3,len));
-                if(sStates.find(num)==sStates.end()){
-                    throw std::invalid_argument("State Is Not Contained In Initial State List");
-                }
-                else{
-                    change[std::make_pair(inputSymbol[i],state)].symbol=result[i][0];
-                    change[std::make_pair(inputSymbol[i],state)].state=num;
-                    change[std::make_pair(inputSymbol[i],state)].direction=result[i][sz-1];
-                }
+        int len=(int)result[i].size()-4;
+        if(result[i].substr(2,len)!="HALT"){
+            int num=stoi(result[i].substr(2,len));
+            if(sStates.find(num)==sStates.end()){
+                throw std::invalid_argument("State Is Not Contained In Initial State List");
             }
             else{
-                change[std::make_pair(inputSymbol[i],state)].symbol=result[i][0];
-                change[std::make_pair(inputSymbol[i],state)].state=-1;
-                change[std::make_pair(inputSymbol[i],state)].direction=result[i][sz-1];
-
+                change[std::make_pair(alphabet[i],state)].symbol=result[i][0];
+                change[std::make_pair(alphabet[i],state)].state=num;
+                change[std::make_pair(alphabet[i],state)].direction=result[i][sz-1];
             }
-            
         }
+        else{
+            change[std::make_pair(alphabet[i],state)].symbol=result[i][0];
+            change[std::make_pair(alphabet[i],state)].state=-1;
+            change[std::make_pair(alphabet[i],state)].direction=result[i][sz-1];
+
+        }
+            
     }
+
 
 }
 
 
 std::string Turing::run(std::string& str) {
 
-    int len = str.size();
+    int len = (int)str.size();
 
-    deque<char> answer;
+    std::deque<char> answer;
     for(int i=0; i<(int)str.size();i++){
         answer.push_back(str[i]);
     }
@@ -310,23 +286,26 @@ std::string Turing::run(std::string& str) {
     int curPos=0;//keeps the position of our current
     char curSymbol;
 
-    while(curState!=-1){
-        answer[curPos] = change[make_pair(answer[curPos], curState)].symbol;
-        curState=change[make_pair(answer[curPos], curState)].state;
-        curDir=change[make_pair(answer[curPos], curState)].direction;
-        curSymbol=change[make_pair(answer[curPos], curState)].symbol;
+    while(1){
+        answer[curPos] = change[std::make_pair(answer[curPos], curState)].symbol;
+        curState=change[std::make_pair(answer[curPos], curState)].state;
+        if(curState==-1){
+            break;
+        }
+        curDir=change[std::make_pair(answer[curPos], curState)].direction;
+        curSymbol=change[std::make_pair(answer[curPos], curState)].symbol;
 
         if(curDir=='l' && curPos==0){
             answer.push_front('.');
         }
-        else if(curDir=='r' && curPos==answer.size()-1){
+        else if(curDir=='r' && curPos==(int)answer.size()-1){
             answer.push_back('.');
             curPos++;
         }
         else if(curDir=='l' && curPos!=0){
             curPos--;
         }
-        else{
+        else if(curDir=='r' && curPos!=(int)answer.size()-1){
             curPos++;
         }
     
@@ -366,16 +345,16 @@ std::string Turing::run(std::string& str) {
 
 void Turing::printTape(const std::deque<char>& deq){
     for(int i=0;i<(int)deq.size();i++){
-        cout<<deq[i];
+        std::cout<<deq[i];
     }
-    cout<<endl;
+    std::cout<<std::endl;
 
 }
 
 //if s='e' print the tape after the step
 //if s='q' quit running Turing machine
 void Turing::debug(std::string& str){
-    int len = str.size();
+    int len = (int)str.size();
 
     std::deque<char> answer;
     for(int i=0; i<(int)str.size();i++){
@@ -387,33 +366,39 @@ void Turing::debug(std::string& str){
     int curPos=0;//keeps the position of our current
     char curSymbol;
 
+    std::cout<<"If you want to continue debugging step by step print 'e'"<<std::endl;
+    std::cout<<"If you want to quit debugging print 'q'"<<std::endl;
+
     char s;
-    while(cin>>s){
+    while(1){
+
+            std::cin>>s;
 
             if(s=='e'){
-            answer[curPos] = change[make_pair(answer[curPos], curState)].symbol;
-            curState=change[make_pair(answer[curPos], curState)].state;
-            curDir=change[make_pair(answer[curPos], curState)].direction;
-            curSymbol=change[make_pair(answer[curPos], curState)].symbol;
+
+            answer[curPos] = change[std::make_pair(answer[curPos], curState)].symbol;
+            curState=change[std::make_pair(answer[curPos], curState)].state;
+            if(curState==-1){
+                std::cout<<"Program Finished Successfully!!"<<std::endl;
+                return;
+            }
+            curDir=change[std::make_pair(answer[curPos], curState)].direction;
+            curSymbol=change[std::make_pair(answer[curPos], curState)].symbol;
 
             if(curDir=='l' && curPos==0){
                 answer.push_front('.');
             }
-            else if(curDir=='r' && curPos==answer.size()-1){
+            else if(curDir=='r' && curPos==(int)answer.size()-1){
                 answer.push_back('.');
                 curPos++;
             }
             else if(curDir=='l' && curPos!=0){
                 curPos--;
             }
-            else{
+            else if(curDir=='r' && curPos!=(int)answer.size()-1){
                 curPos++;
             }
             printTape(answer);
-            if(curState==-1){
-                std::cout<<"Program Finished Successfully"<<std::endl;
-                return;
-            }
         }
 
 
