@@ -34,18 +34,15 @@ private:
         int state;
         char direction; //right=r, left=l, stay at current position=s;
     };
-    std::vector<char> inputSymbol; //set of input symbols
-    std::set<char> sInput;
-    std::vector<char> outputSymbol;//set of output symbols
-    std::set<char> sOutput;
+    std::vector<char> alphabet; //set of input symbols
+    std::set<char> sAlphabet;
     std::vector<int> states;//set of internal states
     std::set<int> sStates;
     std::map<std::pair<char,int>, decision> change;
-    void parseInput(std::string);
-    void parseOutput(std::string);
+    void parseAlphabet(std::string);
     void parseStates(std::string);
     void parseFunction(std::string, int);
-    void printTape(const std::deque<int>&);
+    void printTape(const std::deque<char>&);
 };
 
 #endif
